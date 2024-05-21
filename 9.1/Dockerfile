@@ -46,6 +46,7 @@ RUN set -x \
 RUN set -x \
     && export TINI_VERSION=0.18.0 \
     && fetchDeps=" \
+        curl \
         dirmngr \
         gnupg \
         wget \
@@ -76,6 +77,7 @@ ENV SENTRY_VERSION 9.1.2
 
 RUN set -x \
     && buildDeps=" \
+        curl \
         g++ \
         dirmngr \
         gnupg \
