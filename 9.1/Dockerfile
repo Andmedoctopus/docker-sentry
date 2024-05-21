@@ -34,11 +34,7 @@ RUN set -x \
     && wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$(dpkg --print-architecture)" \
     && wget -O /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$(dpkg --print-architecture).asc" \
     && export GNUPGHOME="$(mktemp -d)" \
-    && for key in \
-      B42F6819007F00F88E364FD4036A9C25BF357DD4 \
-    ; do \
-        curl https://keys.openpgp.org/vks/v1/by-fingerprint/$key | gpg --import \
-    done \
+    && curl https://keys.openpgp.org/vks/v1/by-fingerprint/B42F6819007F00F88E364FD4036A9C25BF357DD4 | gpg --import \
     && gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu \
     && gpgconf --kill all \
     && rm -r "$GNUPGHOME" /usr/local/bin/gosu.asc \
@@ -58,13 +54,7 @@ RUN set -x \
     && wget -O /usr/local/bin/tini "https://github.com/krallin/tini/releases/download/v$TINI_VERSION/tini" \
     && wget -O /usr/local/bin/tini.asc "https://github.com/krallin/tini/releases/download/v$TINI_VERSION/tini.asc" \
     && export GNUPGHOME="$(mktemp -d)" \
-    && for key in \
-      595E85A6B1B4779EA4DAAEC70B588DFF0527A9B7 \
-    ; do \
-      gpg --batch --keyserver hkp://ha.pool.sks-keyservers.net --recv-keys "$key" || \
-      gpg --batch --keyserver hkp://ipv4.pool.sks-keyservers.net --recv-keys "$key" || \
-      gpg --batch --keyserver hkp://pgp.mit.edu:80 --recv-keys "$key" ; \
-    done \
+    && curl https://keys.openpgp.org/vks/v1/by-fingerprint/595E85A6B1B4779EA4DAAEC70B588DFF0527A9B7 | gpg --import \
     && gpg --batch --verify /usr/local/bin/tini.asc /usr/local/bin/tini \
     && gpgconf --kill all \
     && rm -r "$GNUPGHOME" /usr/local/bin/tini.asc \
@@ -103,9 +93,7 @@ RUN set -x \
       70DBC4D958026B46032EAB75A17EE621C962DE46 \
       4EBA9A94CC7DC65988662672C2F03C406631065D \
     ; do \
-      gpg --batch --keyserver hkp://ha.pool.sks-keyservers.net --recv-keys "$key" || \
-      gpg --batch --keyserver hkp://ipv4.pool.sks-keyservers.net --recv-keys "$key" || \
-      gpg --batch --keyserver hkp://pgp.mit.edu:80 --recv-keys "$key" ; \
+      curl https://keys.openpgp.org/vks/v1/by-fingerprint/$key | gpg --import; \
     done \
     && gpg --batch --verify /usr/src/sentry/sentry-${SENTRY_VERSION}-py27-none-any.whl.asc /usr/src/sentry/sentry-${SENTRY_VERSION}-py27-none-any.whl \
     && gpg --batch --verify /usr/src/sentry/sentry_plugins-${SENTRY_VERSION}-py2.py3-none-any.whl.asc /usr/src/sentry/sentry_plugins-${SENTRY_VERSION}-py2.py3-none-any.whl \
