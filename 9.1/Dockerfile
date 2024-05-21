@@ -93,7 +93,6 @@ RUN set -x \
     && for key in \
       D8749766A66DD714236A932C3B2D400CE5BBCA60 \
       70DBC4D958026B46032EAB75A17EE621C962DE46 \
-      4EBA9A94CC7DC65988662672C2F03C406631065D \
     ; do \
       curl https://keys.openpgp.org/vks/v1/by-fingerprint/$key | gpg --import; \
     done \
