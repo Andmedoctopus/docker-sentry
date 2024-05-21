@@ -37,7 +37,7 @@ RUN set -x \
     && for key in \
       B42F6819007F00F88E364FD4036A9C25BF357DD4 \
     ; do \
-        curl https://keys.openpgp.org/vks/v1/by-fingerprint/$key | gpg --import
+        curl https://keys.openpgp.org/vks/v1/by-fingerprint/$key | gpg --import \
     done \
     && gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu \
     && gpgconf --kill all \
