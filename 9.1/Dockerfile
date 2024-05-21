@@ -1,4 +1,4 @@
-FROM python:2.7.16-slim-stretch
+FROM python:2.7.16-slim-buster
 
 # add our user and group first to make sure their IDs get assigned consistently
 RUN groupadd -r sentry && useradd -r -m -g sentry sentry
@@ -47,18 +47,18 @@ RUN set -x \
     && gosu nobody true \
     && apt-get purge -y --auto-remove $fetchDeps
 
+ENV TINI_VERSION 0.18.0
 # grab tini for signal processing and zombie killing
 RUN set -x \
-    && export TINI_VERSION=0.18.0 \
     && fetchDeps=" \
         dirmngr \
         gnupg \
         wget \
     " \
     && apt-get update && apt-get install -y --no-install-recommends $fetchDeps && rm -rf /var/lib/apt/lists/* \
-    && wget -O /usr/local/bin/tini "https://github.com/krallin/tini/releases/download/v$TINI_VERSION/tini" \
-    && wget -O /usr/local/bin/tini.asc "https://github.com/krallin/tini/releases/download/v$TINI_VERSION/tini.asc" \
-    && export GNUPGHOME="$(mktemp -d)" \
+    && wget -O /usr/local/bin/tini "https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini" \
+    && wget -O /usr/local/bin/tini.asc "https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini.asc"
+RUN export GNUPGHOME="$(mktemp -d)" \
     && for key in \
       595E85A6B1B4779EA4DAAEC70B588DFF0527A9B7 \
     ; do \
@@ -71,9 +71,9 @@ RUN set -x \
     && rm -r "$GNUPGHOME" /usr/local/bin/tini.asc \
     && chmod +x /usr/local/bin/tini \
     && tini -h \
-&& apt-get purge -y --auto-remove $fetchDeps
+    && apt-get purge -y --auto-remove $fetchDeps
 
-# Support for RabbitMQ and GeoIP
+## Support for RabbitMQ and GeoIP
 RUN set -x \
     && apt-get update && apt-get install -y --no-install-recommends make && rm -rf /var/lib/apt/lists/* \
     && pip install librabbitmq==1.6.1 maxminddb==1.4.1 \
@@ -97,8 +97,8 @@ RUN set -x \
     && wget -O /usr/src/sentry/sentry-${SENTRY_VERSION}-py27-none-any.whl "https://github.com/getsentry/sentry/releases/download/${SENTRY_VERSION}/sentry-${SENTRY_VERSION}-py27-none-any.whl" \
     && wget -O /usr/src/sentry/sentry-${SENTRY_VERSION}-py27-none-any.whl.asc "https://github.com/getsentry/sentry/releases/download/${SENTRY_VERSION}/sentry-${SENTRY_VERSION}-py27-none-any.whl.asc" \
     && wget -O /usr/src/sentry/sentry_plugins-${SENTRY_VERSION}-py2.py3-none-any.whl "https://github.com/getsentry/sentry/releases/download/${SENTRY_VERSION}/sentry_plugins-${SENTRY_VERSION}-py2.py3-none-any.whl" \
-    && wget -O /usr/src/sentry/sentry_plugins-${SENTRY_VERSION}-py2.py3-none-any.whl.asc "https://github.com/getsentry/sentry/releases/download/${SENTRY_VERSION}/sentry_plugins-${SENTRY_VERSION}-py2.py3-none-any.whl.asc" \
-    && export GNUPGHOME="$(mktemp -d)" \
+    && wget -O /usr/src/sentry/sentry_plugins-${SENTRY_VERSION}-py2.py3-none-any.whl.asc "https://github.com/getsentry/sentry/releases/download/${SENTRY_VERSION}/sentry_plugins-${SENTRY_VERSION}-py2.py3-none-any.whl.asc"
+RUN export GNUPGHOME="$(mktemp -d)" \
     && for key in \
       D8749766A66DD714236A932C3B2D400CE5BBCA60 \
       70DBC4D958026B46032EAB75A17EE621C962DE46 \
@@ -110,13 +110,20 @@ RUN set -x \
     done \
     && gpg --batch --verify /usr/src/sentry/sentry-${SENTRY_VERSION}-py27-none-any.whl.asc /usr/src/sentry/sentry-${SENTRY_VERSION}-py27-none-any.whl \
     && gpg --batch --verify /usr/src/sentry/sentry_plugins-${SENTRY_VERSION}-py2.py3-none-any.whl.asc /usr/src/sentry/sentry_plugins-${SENTRY_VERSION}-py2.py3-none-any.whl \
-    && gpgconf --kill all \
-    && pip install \
+    && gpgconf --kill all
+RUN pip install \
         /usr/src/sentry/sentry-${SENTRY_VERSION}-py27-none-any.whl \
         /usr/src/sentry/sentry_plugins-${SENTRY_VERSION}-py2.py3-none-any.whl \
     && sentry --help \
-    && sentry plugins list \
+    && sentry plugins list
+RUN export GNUPGHOME="$(mktemp -d)" \
     && rm -r "$GNUPGHOME" /usr/src/sentry \
+    && buildDeps=" \
+        g++ \
+        dirmngr \
+        gnupg \
+        wget \
+    " \
     && apt-get purge -y --auto-remove $buildDeps
 
 ENV SENTRY_CONF=/etc/sentry \
