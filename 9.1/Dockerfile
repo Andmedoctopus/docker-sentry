@@ -25,6 +25,7 @@ ENV PIP_DISABLE_PIP_VERSION_CHECK on
 RUN set -x \
     && export GOSU_VERSION=1.11 \
     && fetchDeps=" \
+        curl \
         dirmngr \
         gnupg \
         wget \
@@ -36,9 +37,7 @@ RUN set -x \
     && for key in \
       B42F6819007F00F88E364FD4036A9C25BF357DD4 \
     ; do \
-      gpg --batch --keyserver hkp://ha.pool.sks-keyservers.net --recv-keys "$key" || \
-      gpg --batch --keyserver hkp://ipv4.pool.sks-keyservers.net --recv-keys "$key" || \
-      gpg --batch --keyserver hkp://pgp.mit.edu:80 --recv-keys "$key" ; \
+        curl https://keys.openpgp.org/vks/v1/by-fingerprint/$key | gpg --import
     done \
     && gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu \
     && gpgconf --kill all \
