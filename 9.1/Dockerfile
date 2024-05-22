@@ -94,12 +94,14 @@ RUN set -x \
         /usr/src/sentry/sentry_plugins-${SENTRY_VERSION}-py2.py3-none-any.whl \
     && sentry --help \
     && sentry plugins list \
-    && rm -r "$GNUPGHOME" /usr/src/sentry \
+    && rm -r /usr/src/sentry \
     && apt-get purge -y --auto-remove $buildDeps
 
 ENV SENTRY_CONF=/etc/sentry \
     SENTRY_FILESTORE_DIR=/var/lib/sentry/files
 
+COPY requirements.txt .
+RUN pip install --force-reinstall -I --no-cache-dir -r requirements.txt
 RUN mkdir -p $SENTRY_CONF && mkdir -p $SENTRY_FILESTORE_DIR
 
 COPY sentry.conf.py /etc/sentry/
