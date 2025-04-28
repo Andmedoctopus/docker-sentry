@@ -1,4 +1,9 @@
-FROM python:2.7.16-slim-stretch
+FROM debian:bookworm
+
+RUN echo "deb http://deb.debian.org/debian bullseye main" > /etc/apt/sources.list.d/bullseye.list && \
+  apt-get update && \
+  apt-get install -y python2.7 ca-certificates && \
+  apt-get clean
 
 # add our user and group first to make sure their IDs get assigned consistently
 RUN groupadd -r sentry && useradd -r -m -g sentry sentry
@@ -18,8 +23,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && rm -rf /var/lib/apt/lists/*
 
 # Sane defaults for pip
-ENV PIP_NO_CACHE_DIR off
-ENV PIP_DISABLE_PIP_VERSION_CHECK on
+ENV PIP_NO_CACHE_DIR=off \
+  PIP_DISABLE_PIP_VERSION_CHECK=on
 
 # grab gosu for easy step-down from root
 RUN set -x \
@@ -36,9 +41,9 @@ RUN set -x \
   && for key in \
   B42F6819007F00F88E364FD4036A9C25BF357DD4 \
   ; do \
-  gpg --batch --keyserver hkp://ha.pool.sks-keyservers.net --recv-keys "$key" || \
-  gpg --batch --keyserver hkp://ipv4.pool.sks-keyservers.net --recv-keys "$key" || \
-  gpg --batch --keyserver hkp://pgp.mit.edu:80 --recv-keys "$key" ; \
+  gpg --batch --keyserver hkp://keys.openpgp.org --recv-key "$key" || \
+  gpg --batch --keyserver hkp://keys.openpgp.org --recv-key "$key" || \
+  gpg --batch --keyserver hkp://keys.openpgp.org --recv-key "$key" ; \
   done \
   && gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu \
   && gpgconf --kill all \
@@ -62,9 +67,9 @@ RUN set -x \
   && for key in \
   595E85A6B1B4779EA4DAAEC70B588DFF0527A9B7 \
   ; do \
-  gpg --batch --keyserver hkp://ha.pool.sks-keyservers.net --recv-keys "$key" || \
-  gpg --batch --keyserver hkp://ipv4.pool.sks-keyservers.net --recv-keys "$key" || \
-  gpg --batch --keyserver hkp://pgp.mit.edu:80 --recv-keys "$key" ; \
+  gpg --batch --keyserver hkp://keys.openpgp.org --recv-key "$key" || \
+  gpg --batch --keyserver hkp://keys.openpgp.org --recv-key "$key" || \
+  gpg --batch --keyserver hkp://keys.openpgp.org --recv-key "$key" ; \
   done \
   && gpg --batch --verify /usr/local/bin/tini.asc /usr/local/bin/tini \
   && gpgconf --kill all \
@@ -83,7 +88,7 @@ RUN set -x \
   && python -c 'import maxminddb.extension; maxminddb.extension.Reader' \
   && apt-get purge -y --auto-remove make
 
-ENV SENTRY_VERSION 9.1.2
+ENV SENTRY_VERSION=9.1.2
 
 RUN set -x \
   && buildDeps=" \
@@ -104,9 +109,9 @@ RUN set -x \
   70DBC4D958026B46032EAB75A17EE621C962DE46 \
   4EBA9A94CC7DC65988662672C2F03C406631065D \
   ; do \
-  gpg --batch --keyserver hkp://ha.pool.sks-keyservers.net --recv-keys "$key" || \
-  gpg --batch --keyserver hkp://ipv4.pool.sks-keyservers.net --recv-keys "$key" || \
-  gpg --batch --keyserver hkp://pgp.mit.edu:80 --recv-keys "$key" ; \
+  gpg --batch --keyserver hkp://keys.openpgp.org --recv-key "$key" || \
+  gpg --batch --keyserver hkp://keys.openpgp.org --recv-key "$key" || \
+  gpg --batch --keyserver hkp://keys.openpgp.org --recv-key "$key" ; \
   done \
   && gpg --batch --verify /usr/src/sentry/sentry-${SENTRY_VERSION}-py27-none-any.whl.asc /usr/src/sentry/sentry-${SENTRY_VERSION}-py27-none-any.whl \
   && gpg --batch --verify /usr/src/sentry/sentry_plugins-${SENTRY_VERSION}-py2.py3-none-any.whl.asc /usr/src/sentry/sentry_plugins-${SENTRY_VERSION}-py2.py3-none-any.whl \
