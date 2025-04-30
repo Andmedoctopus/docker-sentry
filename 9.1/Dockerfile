@@ -1,8 +1,13 @@
-FROM debian:bookworm
+FROM debian:bookworm-slim
 
-RUN echo "deb http://deb.debian.org/debian bullseye main" > /etc/apt/sources.list.d/bullseye.list && \
+RUN echo "deb http://deb.debian.org/debian bullseye main" >> /etc/apt/sources.list.d/bullseye.list && \
+  echo "deb http://deb.debian.org/debian bullseye-updates main" >> /etc/apt/sources.list.d/bullseye.list && \ 
+  echo "deb http://security.debian.org bullseye-security main" >> /etc/apt/sources.list.d/bullseye.list && \
   apt-get update && \
-  apt-get install -y python2.7 ca-certificates && \
+  apt-get install -y python-dev python2.7 python2.7-dev ca-certificates curl && \
+  echo 'alias python="python2.7"' >> ~/.bashrc && \
+  curl https://bootstrap.pypa.io/pip/2.7/get-pip.py | python2.7 && \
+  apt-get purge -y --auto-remove curl && \
   apt-get clean
 
 # add our user and group first to make sure their IDs get assigned consistently
@@ -80,8 +85,8 @@ RUN set -x \
 
 # Support for RabbitMQ and GeoIP
 RUN set -x \
-  && apt-get update && apt-get install -y --no-install-recommends make && rm -rf /var/lib/apt/lists/* \
-  && pip install librabbitmq==1.6.1 maxminddb==1.4.1 \
+  && apt-get update && apt-get install -y --no-install-recommends make clang && rm -rf /var/lib/apt/lists/* \
+  && pip install librabbitmq==2.0.0 maxminddb==1.4.1 \
   && python -c 'import librabbitmq' \
   # Fully verify that the C extension is correctly installed, it unfortunately
   # requires a full check into maxminddb.extension.Reader
@@ -96,6 +101,7 @@ RUN set -x \
   dirmngr \
   gnupg \
   wget \
+  gcc \
   " \
   && apt-get update && apt-get install -y --no-install-recommends $buildDeps && rm -rf /var/lib/apt/lists/* \
   && mkdir -p /usr/src/sentry \
@@ -104,18 +110,7 @@ RUN set -x \
   && wget -O /usr/src/sentry/sentry_plugins-${SENTRY_VERSION}-py2.py3-none-any.whl "https://github.com/getsentry/sentry/releases/download/${SENTRY_VERSION}/sentry_plugins-${SENTRY_VERSION}-py2.py3-none-any.whl" \
   && wget -O /usr/src/sentry/sentry_plugins-${SENTRY_VERSION}-py2.py3-none-any.whl.asc "https://github.com/getsentry/sentry/releases/download/${SENTRY_VERSION}/sentry_plugins-${SENTRY_VERSION}-py2.py3-none-any.whl.asc" \
   && export GNUPGHOME="$(mktemp -d)" \
-  && for key in \
-  D8749766A66DD714236A932C3B2D400CE5BBCA60 \
-  70DBC4D958026B46032EAB75A17EE621C962DE46 \
-  4EBA9A94CC7DC65988662672C2F03C406631065D \
-  ; do \
-  gpg --batch --keyserver hkp://keys.openpgp.org --recv-key "$key" || \
-  gpg --batch --keyserver hkp://keys.openpgp.org --recv-key "$key" || \
-  gpg --batch --keyserver hkp://keys.openpgp.org --recv-key "$key" ; \
-  done \
-  && gpg --batch --verify /usr/src/sentry/sentry-${SENTRY_VERSION}-py27-none-any.whl.asc /usr/src/sentry/sentry-${SENTRY_VERSION}-py27-none-any.whl \
-  && gpg --batch --verify /usr/src/sentry/sentry_plugins-${SENTRY_VERSION}-py2.py3-none-any.whl.asc /usr/src/sentry/sentry_plugins-${SENTRY_VERSION}-py2.py3-none-any.whl \
-  && gpgconf --kill all \
+  && pip install phabricator==0.7.0 sentry-sdk==0.13.0 \
   && pip install \
   /usr/src/sentry/sentry-${SENTRY_VERSION}-py27-none-any.whl \
   /usr/src/sentry/sentry_plugins-${SENTRY_VERSION}-py2.py3-none-any.whl \
